@@ -102,12 +102,6 @@ variable "jail_sg" {
   default     = false
 }
 
-variable "lift_and_shift" {
-  description = "(Optional) Whether to enable lift-and-shift policy for the KMS key."
-  type        = bool
-  default     = false
-}
-
 variable "snow_instances" {
   description = "A map of EC2 instance configurations. Each key is a unique identifier for the instance, and the value is a map containing the instance's configuration details."
   type = map(object({
@@ -132,7 +126,7 @@ variable "snow_instances" {
       iops                  = optional(number)
       throughput            = optional(number)
     })))
-    modify_existing_ebs_block_devices = optional(map(object({
+    additional_ebs_block_devices = optional(map(object({
       device_name           = string
       volume_type           = string
       volume_size           = number

@@ -134,7 +134,7 @@ module "snow_instance" {
 
   root_block_device = each.value.root_block_device != null ? [for device in each.value.root_block_device : merge(device, local.encryption_properties)] : null
 
-  modify_existing_ebs_block_devices = each.value.modify_existing_ebs_block_devices != null ? { for k, v in each.value.modify_existing_ebs_block_devices : k => merge(v, local.encryption_properties) } : null
+  additional_ebs_block_devices = each.value.additional_ebs_block_devices != null ? { for k, v in each.value.additional_ebs_block_devices : k => merge(v, local.encryption_properties) } : null
 
   ami                     = each.value.ami_id
   security_group_ids      = [module.snow_instance_ec2_sg.sg.id]
