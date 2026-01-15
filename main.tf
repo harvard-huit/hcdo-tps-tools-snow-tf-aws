@@ -138,8 +138,8 @@ module "snow_instance" {
 
   ami                     = each.value.ami_id
   security_group_ids      = [module.snow_instance_ec2_sg.sg.id]
-  disable_api_stop        = true
-  disable_api_termination = true
+  disable_api_stop        = false
+  disable_api_termination = false
   key_name                = each.value.key_name
 
   iam_instance_profile_name = var.iam_instance_profile_name

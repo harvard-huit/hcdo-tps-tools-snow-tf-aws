@@ -19,15 +19,29 @@ iam_instance_profile_name = "esm-prod-snow-instance-role"
 jail_sg                   = false
 
 snow_instance_ingress_rules = {
+  "all_huitadmin_vpn1" = {
+    from_port   = null
+    to_port     = null
+    ip_protocol = -1
+    cidr_ipv4   = "10.1.49.0/24"
+    description = "Allow RDP from HUIT Admin VPN"
+  },
 }
 
 snow_instance_egress_rules = {
+  "all_huitadmin_vpn1" = {
+    from_port   = null
+    to_port     = null
+    ip_protocol = -1
+    cidr_ipv4   = "10.1.49.0/24"
+    description = "Allow RDP to HUIT Admin VPN"
+  },
 }
 
 snow_instances = {
   0 = {
     name          = "snow-prod-instance-01"
-    ami_id        = "ami-035bfb8c022c29b0f" # Windows Server 2022 Golden Image
+    ami_id        = "ami-0fc59a9aca98887be" # Windows Server 2022 Golden Image
     subnet_id     = "subnet-66a0c149"
     instance_type = "c8i-flex.xlarge"
     key_name      = "esm-prod-snow-instance"
