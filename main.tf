@@ -53,6 +53,10 @@ locals {
   # )
   # You can then use the same merge function to add these tags to any resource you create alongside any resource-specific tags.
 
+  encryption_properties = {
+    encrypted = true
+  }
+
 }
 
 # ------------------------------------------------------------------------------
@@ -91,7 +95,62 @@ module "metadata" {
 # Resources
 # ------------------------------------------------------------------------------
 
-# Place additional resources here. The following resource is just used as an example.
-resource "null_resource" "do_nothing" {
+module "snow_instance_ec2_sg" {
+  source  = "artifactory.huit.harvard.edu/cloudarch-terraform-virtual__aws-modules/aws_sg/aws"
+  version = "~> v2.0"
 
+
+  # Module Variables
+  tier   = "app"
+  vpc_id = module.metadata.vpc_config.vpc_id
+
+  name_prefix = "${module.constants.resource_prefix}-web-ec2"
+
+  ingress_rules = var.snow_instance_ingress_rules
+
+  egress_rules = var.snow_instance_egress_rules
+
+  jailed = var.jail_sg
+}
+
+# Place additional resources here. The following resource is just used as an example.
+module "snow_instance" {
+  source  = "artifactory.huit.harvard.edu/cloudarch-terraform-virtual__aws-modules/aws_ec2/aws"
+  version = "~> v2.0"
+
+  for_each = { for k, v in var.snow_instances : k => v if v.create }
+
+  name          = each.value.name
+  static        = each.value.static
+  platform      = each.value.platform
+  backup_policy = each.value.backup_policy
+  instance_type = each.value.instance_type
+  subnet_id     = each.value.subnet_id != null ? each.value.subnet_id : module.metadata.vpc_config.subnets[var.product_context]["app"][each.key % module.metadata.az_count]
+
+  jailed = each.value.jail_sg
+
+  constants_data = module.constants
+  metadata_data  = module.metadata
+
+  root_block_device = each.value.root_block_device != null ? [for device in each.value.root_block_device : merge(device, local.encryption_properties)] : null
+
+  additional_ebs_block_devices = each.value.additional_ebs_block_devices != null ? { for k, v in each.value.additional_ebs_block_devices : k => merge(v, local.encryption_properties) } : null
+
+  ami                     = each.value.ami_id
+  security_group_ids      = [module.snow_instance_ec2_sg.sg.id]
+  disable_api_stop        = false
+  disable_api_termination = false
+  key_name                = each.value.key_name
+
+  iam_instance_profile_name = var.iam_instance_profile_name
+
+  tags = merge(
+    local.default_tags,
+    {
+      patch_policy = each.value.patch_policy
+      hosted_by    = var.product_hosted_by
+      environment  = var.product_environment
+      map-migrated = "PE-EHJNICEHK0"
+    }
+  )
 }

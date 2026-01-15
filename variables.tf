@@ -58,7 +58,7 @@ variable "product_hosted_by" {
   validation {
     condition     = contains(["DevOps-APT12", "DevOps-APT3", "DevOps-APT4", "DevOps-APT4-OT", "DevOps-APT5", "DevOps-APT6", "DevOps-APT7", "DevOps-APT8", "Not-Defined"], var.product_hosted_by)
     error_message = "Produce hosted_by value must be on of the following values: 'DevOps-APT12', 'DevOps-APT3', 'DevOps-APT4', 'DevOps-APT4-OT', 'DevOps-APT5', 'DevOps-APT6', 'DevOps-APT6', 'DevOps-APT6', 'Not-Defined'"
-  } 
+  }
 }
 
 variable "product_criticality" {
@@ -78,7 +78,7 @@ variable "product_data_class" {
   validation {
     condition     = contains(["level4", "nonlevel4"], var.product_data_class)
     error_message = "Product data_class must be on of the following values: 'level4' or 'nonlevel4'"
-}
+  }
 }
 variable "tier" {
   description = "The application tier being deployed, e.g. app, db, lb_pub, or lb_priv."
@@ -89,4 +89,80 @@ variable "tier" {
     condition     = contains(["app", "db", "lb_pub", "lb_priv"], var.tier)
     error_message = "Tier must be one of the following values: 'app', 'db', 'lb_pub', or 'lb_priv'"
   }
+}
+
+variable "iam_instance_profile_name" {
+  description = "The name of the IAM instance profile to use for the EC2 instances"
+  type        = string
+}
+
+variable "jail_sg" {
+  description = "(Optional) Whether to enable the jail security group for the EC2 instances."
+  type        = bool
+  default     = false
+}
+
+variable "snow_instances" {
+  description = "A map of EC2 instance configurations. Each key is a unique identifier for the instance, and the value is a map containing the instance's configuration details."
+  type = map(object({
+    name          = string
+    static        = bool
+    platform      = optional(string)
+    backup_policy = optional(string)
+    instance_type = string
+    jail_sg       = bool
+    patch_policy  = string
+    key_name      = string
+    ami_id        = string
+    create        = bool
+    sg_name       = optional(string)
+    domain_name   = optional(string)
+    subnet_id     = optional(string)
+    root_block_device = optional(list(object({
+      volume_type           = string
+      volume_size           = number
+      delete_on_termination = optional(bool)
+      snapshot_id           = optional(string)
+      iops                  = optional(number)
+      throughput            = optional(number)
+    })))
+    additional_ebs_block_devices = optional(map(object({
+      device_name           = string
+      volume_type           = string
+      volume_size           = number
+      delete_on_termination = optional(bool)
+      snapshot_id           = optional(string)
+      iops                  = optional(number)
+      throughput            = optional(number)
+    })))
+  }))
+  default = {}
+}
+
+variable "snow_instance_ingress_rules" {
+  description = "A map of ingress security group rules for the snow instances security group. Each key is a unique identifier for the rule, and the value is a map containing the rule's details."
+  type = map(object({
+    from_port                    = optional(number)
+    to_port                      = optional(number)
+    ip_protocol                  = optional(string)
+    cidr_ipv4                    = optional(string)
+    description                  = optional(string)
+    referenced_security_group_id = optional(string)
+  }))
+  default = {}
+
+}
+
+variable "snow_instance_egress_rules" {
+  description = "A map of egress security group rules for the snow instances security group. Each key is a unique identifier for the rule, and the value is a map containing the rule's details."
+  type = map(object({
+    from_port                    = optional(number)
+    to_port                      = optional(number)
+    ip_protocol                  = optional(string)
+    cidr_ipv4                    = optional(string)
+    description                  = optional(string)
+    referenced_security_group_id = optional(string)
+  }))
+  default = {}
+
 }
